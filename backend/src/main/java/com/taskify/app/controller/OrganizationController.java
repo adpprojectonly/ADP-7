@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/admin/organizations")
+@RequestMapping("/organizations")
 public class OrganizationController {
 
     @Autowired

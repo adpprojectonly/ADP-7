@@ -56,7 +56,6 @@ public class User implements UserDetails{
         return username;
     }
 
-
     @Override
     public boolean isAccountNonExpired() {
         return true;
@@ -77,6 +76,4 @@ public class User implements UserDetails{
         return true;
     }
 
-
-    // Getters, Setters, Constructors...
 }

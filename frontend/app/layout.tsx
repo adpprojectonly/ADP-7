@@ -1,5 +1,6 @@
 "use client";
 import './globals.css';
+import { NextUIProvider } from '@nextui-org/react';
 import Sidebar from '@/components/custom/Sidebar';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
@@ -8,10 +9,12 @@ import { useEffect } from 'react';
 const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <html lang="en">
-      <body>
-        <AuthProvider>
-          <MainLayout>{children}</MainLayout>
-        </AuthProvider>
+      <body className="dark">
+        <NextUIProvider>
+          <AuthProvider>
+            <MainLayout>{children}</MainLayout>
+          </AuthProvider>
+        </NextUIProvider>
       </body>
     </html>
   );

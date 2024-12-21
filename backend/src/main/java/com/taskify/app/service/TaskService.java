@@ -1,6 +1,7 @@
 package com.taskify.app.service;
 
 import com.taskify.app.model.Task;
+import com.taskify.app.model.TaskStatus;
 import com.taskify.app.model.User;
 import com.taskify.app.repository.TaskRepository;
 import com.taskify.app.repository.UserRepository;
@@ -67,6 +68,14 @@ public class TaskService {
             task.setDescription(taskDetails.getDescription());
             task.setAttachedDocument(taskDetails.getAttachedDocument());
             task.setStatus(taskDetails.getStatus());
+            task.setUpdatedAt(LocalDateTime.now());
+            return taskRepository.save(task);
+        });
+    }
+
+    public Optional<Task> updateTaskStatus(Long id, TaskStatus status) {
+        return taskRepository.findById(id).map(task -> {
+            task.setStatus(status);
             task.setUpdatedAt(LocalDateTime.now());
             return taskRepository.save(task);
         });

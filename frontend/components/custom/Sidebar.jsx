@@ -2,6 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {useAuth} from '@/context/auth-context';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 
 export default function Sidebar() {
@@ -11,21 +13,40 @@ export default function Sidebar() {
   const handleLogOut = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem('organizationId');
+    localStorage.removeItem('userid');
     logout();
   }
 
+  
+  const [organizationName, setOrganizationName] = useState(null);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userid');
+    const token = localStorage.getItem('token');
+    if (userId && token) {
+      axios.get(`http://localhost:8080/organizations/${localStorage.getItem('organizationId')}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then(response => setOrganizationName(response.data.name))
+      .catch(error => console.error('Error fetching organization ID:', error));
+    }
+  }, []);
+
   return (
     <div className="h-screen w-64 bg-gray-800 text-white flex flex-col">
-      <div className="p-4 text-2xl font-bold">TaskiFy</div>
+      <div className="p-4 text-2xl font-bold">{organizationName}</div>
       <nav className="flex flex-col p-4 space-y-2">
         <Link href="/dashboard" legacyBehavior>
-          <a className={`p-2 rounded ${pathname === '/dashboard' ? 'bg-gray-700' : ''}`}>Dashboard</a>
+          <a className={`p-2 rounded ${pathname === '/dashboard' ? 'bg-gray-700' : ''}`}>My Tasks</a>
         </Link>
-        <Link href="/task" legacyBehavior>
-          <a className={`p-2 rounded ${pathname === '/task' ? 'bg-gray-700' : ''}`}>Assigned Tasks</a>
+        <Link href="/action" legacyBehavior>
+          <a className={`p-2 rounded ${pathname === '/action' ? 'bg-gray-700' : ''}`}>Action</a>
         </Link>
         <Link href="/profile" legacyBehavior>
-          <a className={`p-2 rounded ${pathname === '/profile' ? 'bg-gray-700' : ''}`}>Profile Page</a>
+          <a className={`p-2 rounded ${pathname === '/profile' ? 'bg-gray-700' : ''}`}>Profile</a>
         </Link>
 
         <Link href="/">

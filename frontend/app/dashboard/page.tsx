@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import KanbanBoard from '@/components/custom/kanban-board';
 
 
 export default function Home() {
@@ -26,6 +27,9 @@ export default function Home() {
         const result = await response.json();
         console.log(result);
         setData(result);
+
+        localStorage.setItem('userid', result.user.id);
+        localStorage.setItem('organizationId', result.user.organization);
         
         if(result && result.user.role == "ADMIN"){
           router.push("/admin")
@@ -52,9 +56,9 @@ export default function Home() {
   if (error) return <p>Error: {error.toString()}</p>;
 
   return (
-    <div>
-       <h1 className="text-2xl font-bold">Profile Page</h1>
-      
+    <div >
+      <h1 className="text-2xl font-bold">My Tasks</h1>
+        <KanbanBoard />
     </div>
   );
 }

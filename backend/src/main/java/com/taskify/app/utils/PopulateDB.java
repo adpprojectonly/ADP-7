@@ -2,11 +2,11 @@ package com.taskify.app.utils;
 
 import com.taskify.app.model.Organizations;
 import com.taskify.app.model.Task;
+import com.taskify.app.model.TaskStatus;
 import com.taskify.app.model.User;
 import com.taskify.app.repository.OrganizationRepository;
 import com.taskify.app.repository.TaskRepository;
 import com.taskify.app.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -101,20 +101,32 @@ public class PopulateDB {
                             .toList();
 
                     // Create Tasks
-                    for (int i = 1; i <= 3; i++) { // 3 tasks per organization
-                        String taskTitle = "Task " + i + " for " + org.getName();
-                        Optional<Task> taskOpt = taskRepository.findByTitle(taskTitle);
-                        if (!taskOpt.isPresent()) {
-                            Task task = new Task();
-                            task.setTitle(taskTitle);
-                            task.setDescription("Description for " + taskTitle);
-                            task.setCreatedAt(LocalDateTime.now());
-                            task.setAssignedToId(users.get(i % users.size()).getId()); // Assign to a normal user
-                            task.setCreatedById(adminId); // Created by admin
-                            task.setReporteeId(users.get((i + 1) % users.size()).getId()); // Reportee is another user
-                            task.setOrganizationId(org.getId());
-                            taskRepository.save(task);
-                            System.out.println("Created Task: " + taskTitle);
+                    for (User user : users) {
+                        for (int i = 1; i <= 6; i++) {
+                            String taskTitle = "Task " + i + " for " + user.getUsername();
+                            Optional<Task> taskOpt = taskRepository.findByTitle(taskTitle);
+                            if (!taskOpt.isPresent()) {
+                                Task task = new Task();
+                                task.setTitle(taskTitle);
+                                task.setDescription("Description for " + taskTitle);
+                                task.setCreatedAt(LocalDateTime.now());
+                                task.setAssignedToId(user.getId()); // Assign to the current user
+                                task.setCreatedById(adminId); // Created by admin
+                                task.setReporteeId(users.get((i + 1) % users.size()).getId()); // Reportee is another user
+                                task.setOrganizationId(org.getId());
+
+                                // Set task status
+                                if (i <= 3) {
+                                    task.setStatus(TaskStatus.TO_DO);
+                                } else if (i <= 5) {
+                                    task.setStatus(TaskStatus.IN_PROGRESS);
+                                } else {
+                                    task.setStatus(TaskStatus.COMPLETED);
+                                }
+
+                                taskRepository.save(task);
+                                System.out.println("Created Task: " + taskTitle);
+                            }
                         }
                     }
                 }
