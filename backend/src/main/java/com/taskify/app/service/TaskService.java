@@ -29,23 +29,54 @@ public class TaskService {
     //     return taskRepository.findAll();
     // }
 
+    // public List<Task> getAllTasks() {
+    //     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    //     String email = authentication.getName();
+    //     Optional<User> userOptional = userRepository.findByEmail(email);
+    //     if (userOptional.isPresent()) {
+    //         if(userOptional.get().getRole() == "ADMIN") {
+    //         return taskRepository.findAll().stream()
+    //             .filter(task -> userOptional.get().getOrganization().equals(task.getOrganizationId()))
+    //             .collect(Collectors.toList());
+    //         } else {
+    //             Long userId = userOptional.get().getId();
+    //             return taskRepository.findAll().stream()
+    //                     .filter(task -> userId.equals(task.getAssignedToId()) ||
+    //                                     userId.equals(task.getCreatedById()) ||
+    //                                     userId.equals(task.getReporteeId()))
+    //                     .collect(Collectors.toList());
+    //         }
+    //     }
+    //     return List.of();
+    // }
+
     public List<Task> getAllTasks() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isPresent()) {
-            if(userOptional.get().getRole() == "ADMIN") {
-            return taskRepository.findAll().stream()
-                .filter(task -> userOptional.get().getOrganization().equals(task.getOrganizationId()))
-                .collect(Collectors.toList());
+            User currentUser = userOptional.get();
+            List<Task> tasks;
+            if ("ADMIN".equals(currentUser.getRole())) {
+                tasks = taskRepository.findAll().stream()
+                    .filter(task -> currentUser.getOrganization().equals(task.getOrganizationId()))
+                    .collect(Collectors.toList());
             } else {
-                Long userId = userOptional.get().getId();
-                return taskRepository.findAll().stream()
-                        .filter(task -> userId.equals(task.getAssignedToId()) ||
-                                        userId.equals(task.getCreatedById()) ||
-                                        userId.equals(task.getReporteeId()))
-                        .collect(Collectors.toList());
+                Long userId = currentUser.getId();
+                tasks = taskRepository.findAll().stream()
+                    .filter(task -> userId.equals(task.getAssignedToId()) ||
+                                    userId.equals(task.getCreatedById()) ||
+                                    userId.equals(task.getReporteeId()))
+                    .collect(Collectors.toList());
             }
+
+            // Fetch actualUserName for each task
+            tasks.forEach(task -> {
+                Optional<User> assignedToUserOptional = userRepository.findById(task.getAssignedToId().intValue());
+                assignedToUserOptional.ifPresent(user -> task.setActualUsername(user.getActualUsername()));
+            });
+
+            return tasks;
         }
         return List.of();
     }
@@ -56,6 +87,7 @@ public class TaskService {
 
     public Task createTask(Task task) {
         task.setCreatedAt(LocalDateTime.now());
+        task.setUpdatedAt(LocalDateTime.now());
         return taskRepository.save(task);
     }
 

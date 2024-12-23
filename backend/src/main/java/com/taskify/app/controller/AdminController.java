@@ -17,13 +17,11 @@ public class AdminController {
     @GetMapping("/admin/get-all-users")
     public ResponseEntity<ReqRes> getAllUsers(){
         return ResponseEntity.ok(usersManagementService.getAllUsers());
-
     }
 
     @GetMapping("/admin/get-users/{userId}")
     public ResponseEntity<ReqRes> getUSerByID(@PathVariable Integer userId){
         return ResponseEntity.ok(usersManagementService.getUsersById(userId));
-
     }
 
     @PutMapping("/admin/update/{userId}")
@@ -31,12 +29,14 @@ public class AdminController {
         return ResponseEntity.ok(usersManagementService.updateUser(userId, reqres));
     }
 
-
     @DeleteMapping("/admin/delete/{userId}")
     public ResponseEntity<ReqRes> deleteUSer(@PathVariable Integer userId){
         return ResponseEntity.ok(usersManagementService.deleteUser(userId));
     }
 
-    
+    @GetMapping("/admin/get-org-profiles/{id}")
+    public ResponseEntity<ReqRes> getAllUsers(@PathVariable Integer id){
+        return ResponseEntity.ok(usersManagementService.getUsersByOrganizationId(id));
+    }    
 
 }

@@ -128,6 +128,24 @@ public class UsersManagementService {
             reqRes.setMessage("Error occurred while getting user info: " + e.getMessage());
         }
         return reqRes;
+    }
 
+    public ReqRes getUsersByOrganizationId(Integer organizationId) {
+        ReqRes reqRes = new ReqRes();
+        try {
+            List<User> users = usersRepo.findByOrganization(organizationId);
+            if (!users.isEmpty()) {
+                reqRes.setOurUsersList(users);
+                reqRes.setStatusCode(200);
+                reqRes.setMessage("Users found successfully");
+            } else {
+                reqRes.setStatusCode(404);
+                reqRes.setMessage("No users found for the given organization ID");
+            }
+        } catch (Exception e) {
+            reqRes.setStatusCode(500);
+            reqRes.setMessage("Error occurred while fetching users: " + e.getMessage());
+        }
+        return reqRes;
     }
 }

@@ -3,9 +3,9 @@ package com.taskify.app.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,6 +37,13 @@ public class User implements UserDetails{
 
     @Column(nullable = false)
     private String role;
+
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

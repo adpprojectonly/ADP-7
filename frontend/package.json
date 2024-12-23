@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "lucide-react": "^0.344.0",
     "@hello-pangea/dnd": "^17.0.0",
+    "@nextui-org/modal": "^2.2.5",
     "@nextui-org/react": "^2.6.8",
     "@nextui-org/system": "^2.4.4",
     "@nextui-org/table": "^2.2.6",

@@ -159,7 +159,7 @@ export const EditIcon = (props) => {
   );
 };
 
-const TaskTable = ({ tasks, table }) => {
+const AdminTaskTable = ({ tasks, table }) => {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [selectedTask, setSelectedTask] = useState(null);
   const [modalContent, setModalContent] = useState("details");
@@ -394,4 +394,4 @@ const TaskTable = ({ tasks, table }) => {
   );
 };
 
-export default TaskTable;
+export default AdminTaskTable;

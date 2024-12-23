@@ -22,6 +22,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "hooks/useAuthFetch.ts", "app/dashboard/page.tsx", "components/custom/kanban-board.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "hooks/useAuthFetch.ts", "app/dashboard/page.tsx", "components/custom/kanban-board.jsx", "components/ui/task-edit-form.jsx"],
   "exclude": ["node_modules"]
 }

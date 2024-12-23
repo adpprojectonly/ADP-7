@@ -19,6 +19,9 @@ public class Task {
     @Column(nullable = false)
     private String title;
 
+    @Column(nullable = true)
+    private String actualUsername;
+
     @Column(name = "assigned_to_id")
     private Long assignedToId;
     
@@ -70,5 +73,4 @@ public class Task {
         this.reporteeId = reporteeId;
     }
 
-    // Getters and Setters
 }

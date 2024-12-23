@@ -25,8 +25,8 @@ export default function Home() {
           throw new Error('Network response was not ok');
         }
         const result = await response.json();
-        console.log(result);
         setData(result);
+        console.log(data);
 
         localStorage.setItem('userid', result.user.id);
         localStorage.setItem('organizationId', result.user.organization);
@@ -56,9 +56,11 @@ export default function Home() {
   if (error) return <p>Error: {error.toString()}</p>;
 
   return (
-    <div >
-      <h1 className="text-2xl font-bold">My Tasks</h1>
-        <KanbanBoard />
-    </div>
+    <>
+      <div>
+        <h1 className="text-2xl font-bold p-5">My Tasks</h1>
+          <KanbanBoard />
+      </div>
+    </>
   );
 }
