@@ -39,4 +39,9 @@ public class AdminController {
         return ResponseEntity.ok(usersManagementService.getUsersByOrganizationId(id));
     }    
 
+    @PostMapping("/admin/create-user")
+    public ResponseEntity<ReqRes> createUser(@RequestBody User user) {
+        return ResponseEntity.ok(usersManagementService.createUser(user));
+    }
+
 }

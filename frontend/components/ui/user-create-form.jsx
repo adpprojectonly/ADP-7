@@ -48,8 +48,6 @@ const TaskCreateForm = ({ onSave, onCancel }) => {
     };
 
     try {
-
-
       if (onSave) {
         onSave(newTask);
       }

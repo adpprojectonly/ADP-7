@@ -1,6 +1,16 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import AdminTable from "@/components/custom/admin-table";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  useDisclosure,
+} from "@nextui-org/react";
 
 interface IUser {
   id: number;
@@ -8,28 +18,35 @@ interface IUser {
   username: string;
   role: string;
   actualUsername: string;
+  password?: string;
 }
 
 export default function AdminDashboard() {
-  const [user, setUser] = useState<IUser | null>(null);
-  const [users, setUsers] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
+  const [users, setUsers] = useState<IUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
+  const [modalType, setModalType] = useState<"add" | "edit" | "delete" | null>(null);
+  const { isOpen, onOpenChange, onOpen } = useDisclosure();
+
+  // Form states
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("USER");
   const [actualUsername, setActualUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const fetchUsers = async () => {
+  // Fetch all users
+  useEffect(() => {
+    fetchAllUsers();
+  }, []);
+
+  const fetchAllUsers = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get("http://localhost:8080/user/get-profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setUser(response.data.user);
       console.log(response.data.user);
-      console.log(user);
       
       localStorage.setItem('organizationId', response.data.user.organization);
       const allUsers = await axios.get(`http://localhost:8080/user/get-org-profiles/${response.data.user.organization}`, {
@@ -44,173 +61,219 @@ export default function AdminDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  
-
-  const handleAddUser = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const newUser = { email, username, role, actualUsername };
-      await axios.post("http://localhost:8080/user/create", newUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchUsers();
-      setEmail("");
-      setUsername("");
-      setRole("USER");
-      setActualUsername("");
-    } catch (error) {
-      console.error("Error adding user:", error);
-    }
+  // Open modal for adding user
+  const handleAddUser = () => {
+    clearForm();
+    setModalType("add");
+    onOpen();
   };
 
+  // Open modal for editing user
   const handleEditUser = (user: IUser) => {
-    setIsEditing(true);
     setSelectedUser(user);
     setEmail(user.email);
     setUsername(user.username);
     setRole(user.role);
     setActualUsername(user.actualUsername);
+    setPassword("");
+    setModalType("edit");
+    onOpen();
   };
 
-  const handleUpdateUser = async () => {
+  // Open modal for deleting user
+  const handleDeleteUser = (userId: number) => {
+    setSelectedUser(users.find((user) => user.id === userId) || null);
+    setModalType("delete");
+    onOpen();
+  };
+
+  // Add new user
+  const submitAddUser = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const organizationId = localStorage.getItem("organizationId");
+      const newUser: IUser = {
+        id: 0,
+        email,
+        username: actualUsername,
+        role,
+        actualUsername,
+        password,
+      };
+      await axios.post("http://localhost:8080/auth/register", { ...newUser, organizationId }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      fetchAllUsers();
+      onOpenChange();
+    } catch (err) {
+      console.error("Error adding user:", err);
+    }
+  };
+
+  // Update user
+  const submitEditUser = async () => {
     if (!selectedUser) return;
     try {
       const token = localStorage.getItem("token");
-      const updatedUser = {
+      const updatedUser: IUser = {
         ...selectedUser,
         email,
         username,
         role,
         actualUsername,
       };
-      await axios.put(`http://localhost:8080/user/${selectedUser.id}`, updatedUser, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setIsEditing(false);
-      setSelectedUser(null);
-      setEmail("");
-      setUsername("");
-      setRole("USER");
-      setActualUsername("");
-      fetchUsers();
+      await axios.put(
+        `http://localhost:8080/admin/update/${selectedUser.id}`,
+        updatedUser,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      fetchAllUsers();
+      onOpenChange();
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
 
-  const handleDeleteUser = async (userId: number) => {
+  // Delete user
+  const submitDeleteUser = async () => {
+    if (!selectedUser) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8080/user/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      await axios.delete(`http://localhost:8080/admin/delete/${selectedUser.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-      fetchUsers();
+      fetchAllUsers();
+      onOpenChange();
     } catch (error) {
       console.error("Error deleting user:", error);
     }
   };
 
+  // Clear form states
+  const clearForm = () => {
+    setSelectedUser(null);
+    setEmail("");
+    setUsername("");
+    setRole("USER");
+    setActualUsername("");
+    setPassword("");
+  };
+
+  const renderModalBody = () => {
+    if (modalType === "delete") {
+      return (
+        <>
+          <ModalHeader>Delete User</ModalHeader>
+          <ModalBody>
+            <p>Are you sure you want to delete user: {selectedUser?.username}?</p>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="default" onPress={onOpenChange}>
+              Cancel
+            </Button>
+            <Button color="danger" onPress={submitDeleteUser}>
+              Delete
+            </Button>
+          </ModalFooter>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <ModalHeader>{modalType === "add" ? "Add User" : "Edit User"}</ModalHeader>
+        <ModalBody>
+          <div className="flex flex-col gap-4">
+            <div>
+              <label className="text-sm mb-1 block">Email</label>
+              <input
+                className="border p-2 rounded w-full"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            {/* <div>
+              <label className="text-sm mb-1 block">Username</label>
+              <input
+                className="border p-2 rounded w-full"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div> */}
+            <div>
+              <label className="text-sm mb-1 block">Role</label>
+              <select
+                className="border p-2 rounded w-full"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+              >
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm mb-1 block">Actual Name</label>
+              <input
+                className="border p-2 rounded w-full"
+                type="text"
+                value={actualUsername}
+                onChange={(e) => setActualUsername(e.target.value)}
+              />
+            </div>
+            {modalType === "add" && (
+              <div>
+                <label className="text-sm mb-1 block">Password</label>
+                <input
+                  className="border p-2 rounded w-full"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="default" onPress={onOpenChange}>
+            Cancel
+          </Button>
+          <Button
+            color="secondary"
+            onPress={modalType === "add" ? submitAddUser : submitEditUser}
+          >
+            {modalType === "add" ? "Add" : "Update"}
+          </Button>
+        </ModalFooter>
+      </>
+    );
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-100 to-gray-300 p-8">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      {/* Add User Form */}
-      <div className="bg-white shadow p-4 mb-6 rounded">
-        <h2 className="text-xl font-semibold mb-4">{isEditing ? "Edit User" : "Add New User"}</h2>
-        <div className="flex gap-4 mb-2">
-          <div className="flex flex-col w-1/2">
-            <label className="mb-1 text-sm font-medium">Email</label>
-            <input
-              type="text"
-              className="border p-2 rounded"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col w-1/2">
-            <label className="mb-1 text-sm font-medium">Username</label>
-            <input
-              type="text"
-              className="border p-2 rounded"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-        </div>
-        <div className="flex gap-4 mb-2">
-          <div className="flex flex-col w-1/2">
-            <label className="mb-1 text-sm font-medium">Role</label>
-            <select
-              className="border p-2 rounded"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-            >
-              <option value="USER">User</option>
-              <option value="ADMIN">Admin</option>
-            </select>
-          </div>
-          <div className="flex flex-col w-1/2">
-            <label className="mb-1 text-sm font-medium">Actual Name</label>
-            <input
-              type="text"
-              className="border p-2 rounded"
-              value={actualUsername}
-              onChange={(e) => setActualUsername(e.target.value)}
-            />
-          </div>
-        </div>
-        <button
-          className="bg-blue-600 text-white px-4 py-2 mt-3 rounded"
-          onClick={isEditing ? handleUpdateUser : handleAddUser}
-        >
-          {isEditing ? "Update User" : "Add User"}
-        </button>
+    <div className="p-5 min-h-screen bg-inheirt">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-2xl font-bold">Admin Panel</h2>
+        <Button color="secondary" onPress={handleAddUser}>
+          + Add User
+        </Button>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white shadow p-4 rounded">
-        <h2 className="text-xl font-semibold mb-4">Existing Users</h2>
-        <table className="min-w-full border">
-          <thead>
-            <tr className="bg-gray-200 text-left">
-              <th className="p-2 border-b">ID</th>
-              <th className="p-2 border-b">Email</th>
-              <th className="p-2 border-b">Username</th>
-              <th className="p-2 border-b">Role</th>
-              <th className="p-2 border-b">Actual Name</th>
-              <th className="p-2 border-b">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="p-2 border-b">{user.id}</td>
-                <td className="p-2 border-b">{user.email}</td>
-                <td className="p-2 border-b">{user.username}</td>
-                <td className="p-2 border-b">{user.role}</td>
-                <td className="p-2 border-b">{user.actualUsername}</td>
-                <td className="p-2 border-b">
-                  <button
-                    className="bg-yellow-500 text-white px-3 py-1 mr-2 rounded"
-                    onClick={() => handleEditUser(user)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    className="bg-red-600 text-white px-3 py-1 rounded"
-                    onClick={() => handleDeleteUser(user.id)}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="rounded shadow p-4">
+        <AdminTable users={users} onEditUser={handleEditUser} onDeleteUser={handleDeleteUser} />
       </div>
+
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} className="z-[999]">
+        <ModalContent>{renderModalBody()}</ModalContent>
+      </Modal>
     </div>
   );
 }

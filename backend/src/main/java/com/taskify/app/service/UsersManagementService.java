@@ -148,4 +148,29 @@ public class UsersManagementService {
         }
         return reqRes;
     }
+
+    public ReqRes createUser(User newUser) {
+        ReqRes reqRes = new ReqRes();
+        try {
+            // Check if user with the same email already exists
+            Optional<User> existingUser = usersRepo.findByEmail(newUser.getEmail());
+            if (existingUser.isPresent()) {
+                reqRes.setStatusCode(400);
+                reqRes.setMessage("User with the same email already exists");
+                return reqRes;
+            }
+
+            // Encode the password before saving
+            newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+
+            User savedUser = usersRepo.save(newUser);
+            reqRes.setUser(savedUser);
+            reqRes.setStatusCode(201);
+            reqRes.setMessage("User created successfully");
+        } catch (Exception e) {
+            reqRes.setStatusCode(500);
+            reqRes.setMessage("Error occurred while creating user: " + e.getMessage());
+        }
+        return reqRes;
+    }
 }
