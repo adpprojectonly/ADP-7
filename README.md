@@ -186,13 +186,13 @@ Frontend:
 The application follows a three-tier architecture:
 
 1. Presentation Layer (Next.js Frontend)
-![alt text](image-2.png)
+![alt text](./screenshots/image-2.png)
   
 2. Business Logic Layer (Spring Boot Backend)
-![alt text](image-1.png)
+![alt text](./screenshots/image-1.png)
 
 3. Data Layer (MySQL Database)
-![alt text](image.png)
+![alt text](./screenshots/image.png)
 
 ### 3.3 Methods Used
 
